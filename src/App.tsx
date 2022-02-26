@@ -1,24 +1,28 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { ReactElement } from 'react';
 import './App.css';
+import { RedDialog } from './RedDialog';
+import { BlueDialog } from './BlueDialog';
+import { Spawner } from './Spawner';
+import { WindowManager } from './WindowManager';
 
 function App() {
+  const windows = new Map<string, (key: string) => ReactElement>([
+    [
+      'red',
+      (instanceKey: string) => <RedDialog instanceKey={instanceKey}/>
+    ],
+    [
+      'blue',
+      (instanceKey: string) => <BlueDialog instanceKey={instanceKey}/>
+    ],
+  ]);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <WindowManager windows={windows}>
+        <Spawner></Spawner> 
+        <span style={{ fontSize: '32px' }}>Lorem ipsum and so on, and so forth...</span>
+      </WindowManager>
     </div>
   );
 }
