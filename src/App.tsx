@@ -3,17 +3,23 @@ import './App.css';
 import { RedDialog } from './RedDialog';
 import { BlueDialog } from './BlueDialog';
 import { Spawner } from './Spawner';
-import { WindowManager } from './WindowManager';
+import { window, WindowManager } from './WindowManager';
 
 function App() {
-  const windows = new Map<string, (key: string) => ReactElement>([
+  const windows = new Map<string, window>([
     [
       'red',
-      (instanceKey: string) => <RedDialog instanceKey={instanceKey}/>
+      {
+        body: (instanceKey: string) => <RedDialog instanceKey={instanceKey}/>,
+        header: (instanceKey: string) => <span>The red dialog: {instanceKey}</span>,
+      },
     ],
     [
       'blue',
-      (instanceKey: string) => <BlueDialog instanceKey={instanceKey}/>
+      {
+        body:  (instanceKey: string) => <BlueDialog instanceKey={instanceKey}/>,
+        header: (instanceKey: string) => <span>Some title: {instanceKey}</span>,
+      },
     ],
   ]);
 
