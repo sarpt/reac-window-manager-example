@@ -6,7 +6,7 @@ type props = {
 
 export const BlueDialog: FC<props> = ({ instanceKey }) => {
   return (
-    <div style={{ width: '700px', height: '300px' }}>
+    <div>
       This dialog is blue. Key {instanceKey}
     </div>
   );

@@ -13,10 +13,16 @@ type ctx = {
 
 export const WindowManagerContext = createContext<ctx>(undefined);
 
+export type windowProps = {
+  close: () => void
+};
+
 export type window = {
-  body: (key: string) => ReactElement,
+  body: (key: string, props: windowProps) => ReactElement,
   footer?: (key: string) => ReactElement,
-  header: (key: string) => ReactElement
+  header: (key: string) => ReactElement,
+  initialSize?: { width: number | string, height: number | string },
+  initialPosition?: { x: number, y: number }
 };
 
 type windowInstanceUpdate = Partial<windowInstance>;
@@ -45,6 +51,9 @@ function updateWindowInstances(key: string, instances: windowInstance[], data: w
   ];
 }
 
+const defaultPosition = { x: 0, y: 0 };
+const defaultSize = { width: 480, height: 360 };
+
 export type props = { windows: Map<string, window> };
 export const WindowManager: FC<props> = ({ windows, children }) => {
   const [windowInstances, setWindowInstances] = useState<windowInstance[]>([]);
@@ -52,7 +61,18 @@ export const WindowManager: FC<props> = ({ windows, children }) => {
   const [focuedWindow, setFocusedWindow] = useState<string | undefined>();
 
   const open = useCallback((variant: string) => {
-    setWindowInstances([...windowInstances, { variant, key: `${lastId}`, position: { x: 0, y: 0 }, size: { width: 480, height: 360 } }]);
+    const windowRecipe = windows.get(variant);
+    if (!windowRecipe) return;
+
+    setWindowInstances([
+      ...windowInstances,
+      {
+        variant,
+        key: `${lastId}`,
+        position: windowRecipe.initialPosition ?? defaultPosition,
+        size: windowRecipe.initialSize ?? defaultSize,
+      }
+    ]);
     setLastId(lastId+1);
   }, [windowInstances, setWindowInstances, lastId, setLastId]);
 
@@ -128,7 +148,7 @@ export const WindowManager: FC<props> = ({ windows, children }) => {
                   <button onClick={() => close([windowInstance.key])}>close</button>
                 </div>
                 <div className='wmBody' style={{ overflow: 'scroll', flexGrow: 1, cursor: 'default', margin: '2px' }}>
-                  {windowRecipe.body(windowInstance.key)}
+                  {windowRecipe.body(windowInstance.key, { close: () => close([windowInstance.key]) })}
                 </div>
                 {
                   windowRecipe.footer

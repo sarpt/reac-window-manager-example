@@ -1,13 +1,17 @@
 import React, { FC } from 'react';
+import { windowProps } from './WindowManager';
 
 type props = {
   instanceKey: string,
-};
+} & windowProps;
 
-export const RedDialog: FC<props> = ({ instanceKey }) => {
+export const RedDialog: FC<props> = ({ instanceKey, close }) => {
   return (
-    <div style={{ width: '300px', height: '200px' }}>
-      This dialog is red. Key {instanceKey}
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <span>
+        This dialog is red. Key {instanceKey}
+      </span>
+      <button onClick={() => close()}>Close</button>
     </div>
   );
 };

@@ -10,7 +10,7 @@ function App() {
     [
       'red',
       {
-        body: (instanceKey: string) => <RedDialog instanceKey={instanceKey}/>,
+        body: (instanceKey, props) => <RedDialog instanceKey={instanceKey} {...props}/>,
         header: (instanceKey: string) => <span>The red dialog: {instanceKey}</span>,
       },
     ],
