@@ -1,6 +1,6 @@
 import React from 'react';
 import { Spawner } from './Spawner';
-import { WindowManager } from './WindowManager';
+import { WindowManager } from './WindowManager/WindowManager';
 
 import './App.css';
 

@@ -1,8 +1,9 @@
 import React, { useCallback, useContext } from 'react';
-import { WindowManagerContext, windowCreator } from './WindowManager';
 
 import { RedDialog } from './RedDialog';
 import { BlueDialog } from './BlueDialog';
+import { WindowManagerContext } from './WindowManager/context';
+import { windowCreator } from './WindowManager/commonTypes';
 
 const redWindowCreator: windowCreator = (instanceKey) => ({
   body: (props) => <RedDialog instanceKey={instanceKey} {...props}/>,

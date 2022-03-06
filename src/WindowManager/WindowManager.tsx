@@ -1,76 +1,13 @@
-import React, { useState, createContext, useCallback } from 'react';
-import { ReactElement, FC } from 'react';
-import { DraggableEventHandler } from 'react-draggable';
-import { Rnd, RndResizeCallback } from 'react-rnd';
+import React, { useState, useCallback } from 'react';
+import { FC } from 'react';
+import { Rnd } from 'react-rnd';
+import { WindowManagerContext } from './context';
+import { bodyClass, bodySelector, defaultPosition, defaultSize } from './consts';
+import { windowCreator, initial, onDragEventhandler, onResizeEventhandler, windowInstance } from './commonTypes';
+import { updateWindowInstances, windowInstanceUpdate } from './functions/updateWindowInstance';
 
-export type windowCreator = (key: string) => window;
+type props = {};
 
-export type window = {
-  body: (props: windowProps) => ReactElement,
-  footer?: () => ReactElement,
-  header: () => ReactElement,
-};
-
-export type initial = {
-  size?: { width: number | string, height: number | string },
-  position?: { x: number, y: number }
-}
-
-type windowInstance = {
-  key: string,
-  position: {
-    x: number,
-    y: number
-  },
-  size: {
-    width: number | string,
-    height: number | string
-  },
-  windowCreator: windowCreator,
-};
-
-type ctx = {
-  open: (windowCreator: windowCreator, initial?: initial) => void,
-  close: (keys: string[]) => void,
-  instances: windowInstance[],
-} | undefined;
-
-export const WindowManagerContext = createContext<ctx>(undefined);
-
-export type windowProps = {
-  close: () => void
-};
-
-type windowInstanceUpdate = Partial<windowInstance>;
-
-type onDragEventhandler = DraggableEventHandler extends (...args: infer A) => infer R
-  ? (key: string, ...args: A) => R
-  : never;
-
-type onResizeEventhandler = RndResizeCallback extends (...args: infer A) => infer R
-  ? (key: string, ...args: A) => R
-  : never;
-
-function updateWindowInstances(key: string, instances: windowInstance[], data: windowInstanceUpdate): windowInstance[] {
-  const idx = instances.findIndex(instance => instance.key === key);
-  if (idx < 0) return [];
-
-  const updatedInstance = Object.assign(
-    {},
-    instances[idx],
-    { ...data }
-  );
-  return [
-    ...instances.slice(0, idx),
-    updatedInstance,
-    ...instances.slice(idx + 1)
-  ];
-}
-
-const defaultPosition = { x: 0, y: 0 };
-const defaultSize = { width: 480, height: 360 };
-
-export type props = {};
 export const WindowManager: FC<props> = ({ children }) => {
   const [windowInstances, setWindowInstances] = useState<windowInstance[]>([]);
   const [lastId, setLastId] = useState<number>(0);
@@ -135,7 +72,7 @@ export const WindowManager: FC<props> = ({ children }) => {
           return (
             <Rnd
               key={idx}
-              cancel='div.wmBody'
+              cancel={bodySelector}
               style={{
                 zIndex: windowInstance.key === focuedWindow ? Number.MAX_SAFE_INTEGER : undefined,
               }}
@@ -162,7 +99,7 @@ export const WindowManager: FC<props> = ({ children }) => {
                   <div style={{ flexGrow: 1 }}>{window.header()}</div>
                   <button onClick={() => close([windowInstance.key])}>close</button>
                 </div>
-                <div className='wmBody' style={{ overflow: 'scroll', flexGrow: 1, cursor: 'default', margin: '2px' }}>
+                <div className={bodyClass} style={{ overflow: 'scroll', flexGrow: 1, cursor: 'default', margin: '2px' }}>
                   {window.body({ close: () => close([windowInstance.key]) })}
                 </div>
                 {
