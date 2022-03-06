@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { windowProps } from './WindowManager';
+import { windowProps } from './WindowManager/commonTypes';
 
 type props = {
   instanceKey: string,
