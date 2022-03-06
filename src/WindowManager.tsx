@@ -3,13 +3,18 @@ import { ReactElement, FC } from 'react';
 import { DraggableEventHandler } from 'react-draggable';
 import { Rnd, RndResizeCallback } from 'react-rnd';
 
+export type windowCreator = (key: string) => window;
+
 export type window = {
-  body: (key: string, props: windowProps) => ReactElement,
-  footer?: (key: string) => ReactElement,
-  header: (key: string) => ReactElement,
-  initialSize?: { width: number | string, height: number | string },
-  initialPosition?: { x: number, y: number }
+  body: (props: windowProps) => ReactElement,
+  footer?: () => ReactElement,
+  header: () => ReactElement,
 };
+
+export type initial = {
+  size?: { width: number | string, height: number | string },
+  position?: { x: number, y: number }
+}
 
 type windowInstance = {
   key: string,
@@ -21,11 +26,11 @@ type windowInstance = {
     width: number | string,
     height: number | string
   },
-  windowRecipe: window,
+  windowCreator: windowCreator,
 };
 
 type ctx = {
-  open: (window: window) => void,
+  open: (windowCreator: windowCreator, initial?: initial) => void,
   close: (keys: string[]) => void,
   instances: windowInstance[],
 } | undefined;
@@ -71,15 +76,15 @@ export const WindowManager: FC<props> = ({ children }) => {
   const [lastId, setLastId] = useState<number>(0);
   const [focuedWindow, setFocusedWindow] = useState<string | undefined>();
 
-  const open = useCallback((window: window) => {
+  const open = useCallback((windowCreator: windowCreator, initial?: initial) => {
     const key = `${lastId}`;
     setWindowInstances([
       ...windowInstances,
       {
         key,
-        position: window.initialPosition ?? defaultPosition,
-        size: window.initialSize ?? defaultSize,
-        windowRecipe: window,
+        position: initial?.position ?? defaultPosition,
+        size: initial?.size ?? defaultSize,
+        windowCreator: windowCreator,
       }
     ]);
     setLastId(lastId+1);
@@ -125,6 +130,8 @@ export const WindowManager: FC<props> = ({ children }) => {
       </WindowManagerContext.Provider>
       {
         windowInstances.map((windowInstance, idx) => {
+          const window = windowInstance.windowCreator(windowInstance.key);
+
           return (
             <Rnd
               key={idx}
@@ -152,15 +159,15 @@ export const WindowManager: FC<props> = ({ children }) => {
                 }}
               >
                 <div style={{ display: 'flex', flexDirection: 'row', backgroundColor: 'lavender', height: '25px' }}>
-                  <div style={{ flexGrow: 1 }}>{windowInstance.windowRecipe.header(windowInstance.key)}</div>
+                  <div style={{ flexGrow: 1 }}>{window.header()}</div>
                   <button onClick={() => close([windowInstance.key])}>close</button>
                 </div>
                 <div className='wmBody' style={{ overflow: 'scroll', flexGrow: 1, cursor: 'default', margin: '2px' }}>
-                  {windowInstance.windowRecipe.body(windowInstance.key, { close: () => close([windowInstance.key]) })}
+                  {window.body({ close: () => close([windowInstance.key]) })}
                 </div>
                 {
-                  windowInstance.windowRecipe.footer
-                    ? <div style={{ height: '20px'}}>{windowInstance.windowRecipe.footer(windowInstance.key)}</div>
+                  window.footer
+                    ? <div style={{ height: '20px'}}>{window.footer()}</div>
                     : <></>
                 }
               </div>
