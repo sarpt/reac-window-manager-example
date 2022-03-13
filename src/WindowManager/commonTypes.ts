@@ -40,4 +40,5 @@ export type windowInstance = {
     height: number | string
   },
   windowCreator: windowCreator,
+  onClose?: (instanceKey: string) => void,
 };

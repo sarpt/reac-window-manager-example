@@ -13,7 +13,7 @@ export const WindowManager: FC<props> = ({ children }) => {
   const [lastId, setLastId] = useState<number>(0);
   const [focuedWindow, setFocusedWindow] = useState<string | undefined>();
 
-  const open = useCallback((windowCreator: windowCreator, initial?: initial) => {
+  const open = useCallback(({ windowCreator, initial, onClose }: {windowCreator: windowCreator, initial?: initial, onClose?: (instanceKey: string) => void }) => {
     const key = `${lastId}`;
     setWindowInstances([
       ...windowInstances,
@@ -22,6 +22,7 @@ export const WindowManager: FC<props> = ({ children }) => {
         position: initial?.position ?? defaultPosition,
         size: initial?.size ?? defaultSize,
         windowCreator: windowCreator,
+        onClose: onClose, 
       }
     ]);
     setLastId(lastId+1);
@@ -29,9 +30,30 @@ export const WindowManager: FC<props> = ({ children }) => {
     return key;
   }, [windowInstances, setWindowInstances, lastId, setLastId]);
 
+  const update = useCallback((windows: Map<string, windowCreator>) => {
+    const updatedWindowInstances: windowInstance[] = [...windowInstances];
+
+    for (const [key, windowCreator] of windows) {
+      const windowInstance = updatedWindowInstances.find(instance => instance.key === key);
+      if (!windowInstance) continue;
+
+      Object.assign(windowInstance, { windowCreator });
+    }
+
+    setWindowInstances(updatedWindowInstances);
+  }, [windowInstances, setWindowInstances]);
+
   const close = useCallback((keys: string[]) => {
-    const openWindowInstances = windowInstances
-      .filter(instance => keys.every(key => instance.key !== key));
+    const openWindowInstances: windowInstance[] = [];
+
+    for (const windowInstance of windowInstances) {
+      if (keys.every(key => windowInstance.key !== key)) {
+        openWindowInstances.push(windowInstance);
+        continue;
+      }
+
+      if (windowInstance.onClose) windowInstance.onClose(windowInstance.key);
+    }
 
     setWindowInstances(openWindowInstances);
   }, [windowInstances, setWindowInstances]);
@@ -60,7 +82,7 @@ export const WindowManager: FC<props> = ({ children }) => {
 
   return (
     <>
-      <WindowManagerContext.Provider value={{ open, close, instances: windowInstances }}>
+      <WindowManagerContext.Provider value={{ open, update, close, instances: windowInstances }}>
         {
           children
         }
